@@ -1,24 +1,238 @@
-//
-//  ContentView.swift
-//  TriviarryPotter
-//
-//  Created by Edu Caubilla on 10/3/25.
-//
+    //
+    //  ContentView.swift
+    //  TriviarryPotter
+    //
+    //  Created by Edu Caubilla on 10/3/25.
+    //
 
 import SwiftUI
+import AVKit
 
 struct ContentView: View {
+    @EnvironmentObject private var store : Store
+    @EnvironmentObject private var game : GameViewModel
+
+    @State private var audioPlayer : AVAudioPlayer!
+    @State private var scalePlayButton = false
+    @State private var moveBackgroundImage = false
+    @State private var animateViewsIn = false
+    @State private var showInstructions = false
+    @State private var showSettings = false
+    @State private var playGame = false
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        GeometryReader { geo in
+            ZStack {
+                Image("hogwarts")
+                    .resizable()
+                    .setGeoSize(geo: geo, width: 3)
+                    .padding(.top, 30)
+                    .offset(x: moveBackgroundImage ? geo.size.width / 1.1 : -geo.size.width / 1.1)
+                    .onAppear {
+                        withAnimation(.linear(duration: 60).repeatForever()) {
+                            moveBackgroundImage.toggle()
+                        }
+                    }
+
+                VStack {
+                    VStack {
+                        if animateViewsIn {
+                            VStack {
+                                Image(systemName: "bolt.fill")
+                                    .font(.largeTitle)
+                                    .imageScale(.large)
+                                Text("Triviarry Potter")
+                                    .font(.custom(Constants.hpFont, size: 70))
+                                    .padding(.bottom, -50)
+                                    .shadow(color: .white, radius: 5)
+//                                Text("Trivia")
+//                                    .font(.custom(Constants.hpFont, size: 60))
+//                                    .shadow(color: .white, radius: 5)
+                            }
+                            .padding(.top, 70)
+                            .transition(.move(edge: .top))
+                        }
+                    }
+                    .animation(.easeOut(duration: 0.7).delay(2), value: animateViewsIn)
+
+                    Spacer()
+
+                    VStack {
+                        if animateViewsIn {
+                            VStack {
+                                Text("Recent Scores")
+                                    .font(.title2)
+                                    .padding(.horizontal)
+                                    .padding(.top)
+
+                                VStack {
+                                    Text("\(game.recentScores[0])")
+                                    Text("\(game.recentScores[1])")
+                                    Text("\(game.recentScores[2])")
+                                }
+                                .padding()
+                            }
+                            .font(.title3)
+                            .padding(.horizontal)
+                            .foregroundStyle(.white)
+                            .background(.black.opacity(0.5))
+                            .clipShape(.rect(cornerRadius: 15))
+                        }
+                    }
+                    .animation(.easeOut(duration: 0.7).delay(3), value: animateViewsIn)
+
+                    Spacer()
+
+                    HStack {
+                        Spacer()
+
+                        VStack {
+                            if animateViewsIn {
+                                Button {
+                                    // Show instructions screen
+                                    showInstructions.toggle()
+                                } label: {
+                                    Image(systemName: "info.circle.fill")
+                                        .font(.title)
+                                        .foregroundStyle(.white)
+                                        .shadow(radius: 5)
+                                        .opacity(0.6)
+                                }
+                                .transition(.offset(x: -geo.size.width/4))
+                                .sheet(isPresented: $showInstructions) {
+                                    InstructionsView()
+                                }
+                            }
+                        }
+                        .animation(.easeOut(duration: 0.7).delay(2), value: animateViewsIn)
+
+                        Spacer()
+
+                        VStack {
+                            if animateViewsIn {
+                                Button {
+                                    // Start new game
+                                    filterQuestions()
+                                    game.startGame()
+                                    playGame.toggle()
+                                } label: {
+                                    Text("Play")
+                                        .font(.largeTitle)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(.white)
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 50)
+                                        .background(store.books.contains(.active) ? .yellow.mix(with: .brown, by: 0.3).opacity(0.8) : .gray)
+                                        .clipShape(.rect(cornerRadius: 8))
+                                        .shadow(radius: 10)
+                                }
+                                .scaleEffect(scalePlayButton ? 1.1 : 1)
+                                .onAppear {
+                                    withAnimation(
+                                        .easeInOut(duration: 1.2).repeatForever()
+                                    ) {
+                                        scalePlayButton.toggle()
+                                    }
+                                }
+                                .transition(.offset(y: geo.size.height/3))
+                                .fullScreenCover(isPresented: $playGame) {
+                                    GameplayView()
+                                        .environmentObject(game)
+                                        .onAppear {
+                                            audioPlayer
+                                                .setVolume(0, fadeDuration: 2)
+                                        }
+                                        .onDisappear {
+                                            audioPlayer
+                                                .setVolume(1, fadeDuration: 3)
+                                        }
+                                }
+                                .disabled(!store.books.contains(.active))
+                            }
+                        }
+                        .animation(.easeOut(duration: 0.7).delay(2), value: animateViewsIn)
+
+                        Spacer()
+
+                        VStack {
+                            if animateViewsIn {
+                                Button {
+                                    // Show settings screen
+                                    showSettings.toggle()
+                                } label: {
+                                    Image(systemName: "gearshape.fill")
+                                        .font(.title)
+                                        .foregroundStyle(.white)
+                                        .shadow(radius: 6)
+                                        .opacity(0.6)
+                                }
+                                .transition(.offset(x: geo.size.width/4))
+                                .sheet(isPresented: $showSettings) {
+                                    SettingsView()
+                                        .environmentObject(store)
+
+                                }
+                            }
+                        }
+                        .animation(.easeOut(duration: 0.7).delay(2), value: animateViewsIn)
+
+                        Spacer()
+                    }
+                    .frame(width: geo.size.width)
+
+                    VStack{
+                        if animateViewsIn {
+                            if !store.books.contains(.active) {
+                                Text("No questions available. \nActivate any book in settings screen")
+                                    .multilineTextAlignment(.center)
+                                    .transition(.opacity)
+                                    .padding(.top)
+
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                    .animation(.easeInOut.delay(3), value: animateViewsIn)
+
+                    Spacer()
+                }
+            }
+            .setGeoSize(geo: geo)
         }
-        .padding()
+        .ignoresSafeArea()
+        .onAppear() {
+            animateViewsIn.toggle()
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3){
+                playAudio()
+            }
+        }
+    }
+
+    func playAudio() {
+        let sound = Bundle.main.path(forResource: "magic-in-the-air", ofType: "mp3")
+        print("Audio path : \(sound!)")
+        audioPlayer = try! AVAudioPlayer(contentsOf: URL(filePath: sound!))
+        audioPlayer.numberOfLoops = -1
+        audioPlayer.play()
+    }
+
+    private func filterQuestions() {
+        var books: [Int] = []
+
+        for (index, status) in store.books.enumerated() {
+            if status == .active {
+                books.append(index+1)
+            }
+        }
+
+        game.filterQuestions(to: books)
+        game.newQuestion()
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(Store())
+        .environmentObject(GameViewModel())
 }

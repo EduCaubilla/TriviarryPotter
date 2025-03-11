@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		77D23CE52D804875002AFB99 /* StoreConfig.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 77D23CE42D804875002AFB99 /* StoreConfig.storekit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		7732951B2D7EEB630007443C /* TriviarryPotter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TriviarryPotter.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		77D23CE42D804875002AFB99 /* StoreConfig.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreConfig.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +37,7 @@
 		773295122D7EEB630007443C = {
 			isa = PBXGroup;
 			children = (
+				77D23CE42D804875002AFB99 /* StoreConfig.storekit */,
 				7732951D2D7EEB630007443C /* TriviarryPotter */,
 				7732951C2D7EEB630007443C /* Products */,
 			);
@@ -109,6 +115,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				77D23CE52D804875002AFB99 /* StoreConfig.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
